@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Price Prediction</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="mode-toggle">
+        <button id="toggle-mode">🌙</button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>House Price Prediction</h1>
+            <p>Get accurate property valuations using advanced machine learning</p>
+        </div>
+
+        <div id="prediction-result"></div>
+
+        <div class="form-container">
+            <form id="prediction-form" method="POST">
+                <div class="form-grid">
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label for="bedrooms">Bedrooms</label>
+                            <select name="bedrooms" id="bedrooms" required>
+                                <option value="">Select bedrooms</option>
+                                {% for val in unique_bedrooms %}
+                                    <option value="{{ val }}">{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bathrooms">Bathrooms</label>
+                            <select name="bathrooms" id="bathrooms" required>
+                                <option value="">Select bathrooms</option>
+                                {% for val in unique_bathrooms %}
+                                    <option value="{{ val }}">{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sqft_living">Living Area (sq ft)</label>
+                            <input type="number" name="sqft_living" id="sqft_living" placeholder="e.g., 2000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sqft_lot">Lot Size (sq ft)</label>
+                            <input type="number" name="sqft_lot" id="sqft_lot" placeholder="e.g., 8000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="floors">Floors</label>
+                            <select name="floors" id="floors" required>
+                                <option value="">Select floors</option>
+                                {% for val in unique_floors %}
+                                    <option value="{{ val }}">{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="waterfront">Waterfront</label>
+                            <select name="waterfront" id="waterfront" required>
+                                <option value="">Select option</option>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="view">View Rating</label>
+                            <select name="view" id="view" required>
+                                <option value="">Select view rating</option>
+                                {% for val in unique_view %}
+                                    <option value="{{ val }}">{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="condition">Condition</label>
+                            <select name="condition" id="condition" required>
+                                <option value="">Select condition</option>
+                                {% for val in unique_condition %}
+                                    <option value="{{ val }}">{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label for="sqft_above">Above Ground Area (sq ft)</label>
+                            <input type="number" name="sqft_above" id="sqft_above" placeholder="e.g., 1800" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sqft_basement">Basement Area (sq ft)</label>
+                            <input type="number" name="sqft_basement" id="sqft_basement" placeholder="e.g., 200" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="yr_built">Year Built</label>
+                            <select name="yr_built" id="yr_built" required>
+                                <option value="">Select year</option>
+                                {% for val in unique_yr_built %}
+                                    <option value="{{ val }}">{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="yr_renovated">Year Renovated (Optional)</label>
+                            <input type="number" name="yr_renovated" id="yr_renovated" placeholder="e.g., 2010">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="street">Street</label>
+                            <select name="street" id="street" required>
+                                <option value="">Select street</option>
+                                {% for val in unique_streets %}
+                                    <option value="{{ val }}">{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="city">City</label>
+                            <select name="city" id="city" required>
+                                <option value="">Select city</option>
+                                {% for val in unique_cities %}
+                                    <option value="{{ val }}">{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="statezip">State/Zip</label>
+                            <select name="statezip" id="statezip" required>
+                                <option value="">Select state/zip</option>
+                                {% for val in unique_statezips %}
+                                    <option value="{{ val }}">{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-button" disabled>
+                    <span id="button-text">Predict Price</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Toggle Dark Mode
+            $('#toggle-mode').click(function() {
+                $('body').toggleClass('dark-mode');
+                let currentMode = $('body').hasClass('dark-mode') ? '🌞' : '🌙';
+                $('#toggle-mode').text(currentMode);
+            });
+
+            // Check if all required fields are filled
+            function checkFormValidity() {
+                let allFieldsFilled = true;
+                $('#prediction-form select[required], #prediction-form input[required]').each(function() {
+                    if (!$(this).val()) {
+                        allFieldsFilled = false;
+                        return false;
+                    }
+                });
+
+                $('#submit-button').prop('disabled', !allFieldsFilled);
+                
+                if (!allFieldsFilled) {
+                    $('#prediction-result').removeClass('prediction-success prediction-error').html('');
+                }
+            }
+
+            $('#prediction-form select, #prediction-form input').on('change input', checkFormValidity);
+
+            // Handle form submission
+            $('#prediction-form').submit(function(event) {
+                event.preventDefault();
+
+                // Show loading state
+                $('#prediction-result')
+                    .removeClass('prediction-success prediction-error')
+                    .addClass('prediction-loading fade-in')
+                    .html('<div class="loading-spinner"></div>Calculating prediction...');
+
+                $('#button-text').html('<div class="loading-spinner"></div>Processing...');
+                $('#submit-button').prop('disabled', true);
+
+                // Send the form data using AJAX
+                $.ajax({
+                    type: 'POST',
+                    url: window.location.href,
+                    data: $(this).serialize(),
+                    dataType: 'json',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#prediction-result')
+                                .removeClass('prediction-loading prediction-error')
+                                .addClass('prediction-success fade-in')
+                                .html(`<h2>🏠 Predicted Price: $${response.predicted_price.toLocaleString()}</h2>`);
+                        } else {
+                            $('#prediction-result')
+                                .removeClass('prediction-loading prediction-success')
+                                .addClass('prediction-error fade-in')
+                                .html(`<h2>❌ Error: ${response.error}</h2>`);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', error);
+                        $('#prediction-result')
+                            .removeClass('prediction-loading prediction-success')
+                            .addClass('prediction-error fade-in')
+                            .html('<h2>❌ Error calculating prediction</h2>');
+                    },
+                    complete: function() {
+                        $('#button-text').text('Predict Price');
+                        checkFormValidity();
+                    }
+                });
+            });
+
+            // Initial form validation check
+            checkFormValidity();
+        });
+    </script>
+</body>
+</html>
